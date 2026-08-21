@@ -89,6 +89,9 @@
     boostUntil: 0,
     soundEnabled: true,
     audioUnlocked: false,
+    audioBlocked: false,
+    audioUnlockPromise: null,
+    audioAttempt: 0,
     autoEnabled: !reducedMotion,
     autoPlaying: false,
     autoBuffering: false,
@@ -503,19 +506,44 @@
     }, reducedMotion ? 0 : delay);
   }
 
-  async function unlockSoundtrack() {
-    if (!state.soundEnabled || !soundtrack) return;
-    if (!state.audioUnlocked) {
-      const desired = totalFrames > 1 ? state.targetGlobal / (totalFrames - 1) * 32 : 0;
-      soundtrack.currentTime = clamp(desired, 0, 31.8);
-      soundtrack.volume = .68;
-    }
-    await soundtrack.play().catch(() => {});
-    state.audioUnlocked = !soundtrack.paused;
-    soundToggle.classList.toggle("is-waiting", !state.audioUnlocked);
-    soundToggle.classList.remove("is-muted");
-    soundToggle.setAttribute("aria-label", "关闭声音");
-    soundToggle.title = "关闭声音";
+  function updateSoundControl(mode) {
+    const waiting = mode === "waiting";
+    const muted = mode === "muted";
+    const label = waiting || muted ? "开启声音" : "关闭声音";
+    state.audioBlocked = waiting;
+    soundToggle.classList.toggle("is-waiting", waiting);
+    soundToggle.classList.toggle("is-muted", muted);
+    cornerControls.classList.toggle("needs-sound", waiting);
+    soundToggle.setAttribute("aria-label", label);
+    soundToggle.setAttribute("aria-pressed", String(!waiting && !muted));
+    soundToggle.title = label;
+  }
+
+  function unlockSoundtrack({ userInitiated = false } = {}) {
+    if (!state.soundEnabled || !soundtrack) return Promise.resolve(false);
+    if (state.audioUnlockPromise && !userInitiated) return state.audioUnlockPromise;
+    soundtrack.volume = .68;
+    const attemptId = ++state.audioAttempt;
+    const attempt = soundtrack.play().then(() => {
+      if (attemptId !== state.audioAttempt) return !soundtrack.paused;
+      state.audioUnlocked = !soundtrack.paused;
+      if (!state.audioUnlocked) throw new DOMException("Playback remained paused", "NotAllowedError");
+      const duration = Number.isFinite(soundtrack.duration) && soundtrack.duration > 0 ? soundtrack.duration : 32;
+      const desired = totalFrames > 1 ? state.targetGlobal / (totalFrames - 1) * duration : 0;
+      if (Number.isFinite(soundtrack.duration)) soundtrack.currentTime = clamp(desired, 0, Math.max(0, duration - .2));
+      updateSoundControl("playing");
+      if (userInitiated) status.textContent = "声音已开启";
+      return true;
+    }).catch(() => {
+      if (attemptId !== state.audioAttempt) return !soundtrack.paused;
+      state.audioUnlocked = false;
+      updateSoundControl("waiting");
+      return false;
+    }).finally(() => {
+      if (state.audioUnlockPromise === attempt) state.audioUnlockPromise = null;
+    });
+    state.audioUnlockPromise = attempt;
+    return attempt;
   }
 
   function flyIngredient(button, kind) {
@@ -767,12 +795,12 @@
   finalProductButtons.forEach((button) => button.addEventListener("click", () => chooseFinalProduct(button)));
   addEventListener("wheel", () => { unlockSoundtrack(); postponeAutoplay(360); }, { passive: true });
   addEventListener("touchstart", (event) => {
-    if (!event.target.closest("button")) unlockSoundtrack();
+    unlockSoundtrack({ userInitiated: true });
     postponeAutoplay(620);
   }, { passive: true });
   addEventListener("pointerdown", (event) => {
+    unlockSoundtrack({ userInitiated: true });
     if (!event.target.closest("button")) {
-      unlockSoundtrack();
       postponeAutoplay(700);
     }
   }, { passive: true });
@@ -785,18 +813,15 @@
     state.autoLastTime = 0;
     updateAutoplayControl();
   });
-  soundToggle.addEventListener("click", () => {
-    if (!state.audioUnlocked) {
+  soundToggle.addEventListener("click", async () => {
+    if (!state.audioUnlocked || soundtrack.paused) {
       state.soundEnabled = true;
-      unlockSoundtrack();
+      await unlockSoundtrack({ userInitiated: true });
       return;
     }
-    state.soundEnabled = !state.soundEnabled;
-    if (state.soundEnabled) unlockSoundtrack();
-    else soundtrack.pause();
-    soundToggle.classList.toggle("is-muted", !state.soundEnabled);
-    soundToggle.setAttribute("aria-label", state.soundEnabled ? "关闭声音" : "开启声音");
-    soundToggle.title = state.soundEnabled ? "关闭声音" : "开启声音";
+    state.soundEnabled = false;
+    soundtrack.pause();
+    updateSoundControl("muted");
   });
   addEventListener("keydown", (event) => {
     if (event.target.closest("button")) return;
@@ -830,7 +855,6 @@
     if (state.soundEnabled && !state.audioUnlocked) unlockSoundtrack();
   }, { once: true });
   unlockSoundtrack();
-  soundToggle.classList.add("is-waiting");
   state.autoFrame = requestAnimationFrame(autoTour);
   setInterval(() => {
     if (!state.autoEnabled || document.hidden) return;
@@ -861,6 +885,7 @@
         ingredients: { ...state.ingredients },
         soundEnabled: state.soundEnabled,
         audioUnlocked: state.audioUnlocked,
+        audioBlocked: state.audioBlocked,
         autoEnabled: state.autoEnabled,
         autoPlaying: state.autoPlaying,
         autoBuffering: state.autoBuffering,

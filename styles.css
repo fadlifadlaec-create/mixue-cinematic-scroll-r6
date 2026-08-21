@@ -66,6 +66,10 @@ button { color: inherit; }
   transition: opacity 260ms ease, transform 260ms ease;
 }
 .corner-controls.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+.corner-controls.needs-sound { opacity: 1; transform: none; pointer-events: none; }
+.corner-controls.needs-sound > img,
+.corner-controls.needs-sound .autoplay-toggle { visibility: hidden; }
+.corner-controls.needs-sound .sound-toggle { pointer-events: auto; }
 .corner-controls > img {
   width: 126px;
   height: 40px;
@@ -91,6 +95,23 @@ button { color: inherit; }
 .autoplay-toggle.is-paused span { transform: translateX(1px); }
 .sound-toggle.is-muted span { opacity: .46; }
 .sound-toggle.is-waiting { animation: sound-ready 1.8s ease-in-out infinite; }
+.sound-toggle.is-waiting::before {
+  content: "开启声音";
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 9px);
+  width: max-content;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.68);
+  border-radius: 6px;
+  background: rgba(24,13,13,.74);
+  color: white;
+  font-size: .72rem;
+  font-weight: 750;
+  line-height: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 .sound-toggle.is-muted::after {
   content: "";
   position: absolute;
