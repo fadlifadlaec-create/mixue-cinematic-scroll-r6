@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e9232c">
+  <meta name="description" content="蜜雪冰城互动式甜蜜世界">
+  <title>蜜雪冰城 · 甜蜜世界</title>
+  <link rel="preload" as="image" media="(min-width: 1200px)" href="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
+  <link rel="preload" as="image" media="(max-width: 1199px)" href="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23e9232c'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white'%3EM%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="experience" aria-live="polite">
+    <canvas id="stage" aria-hidden="true"></canvas>
+    <div id="poster-stack" class="poster-stack" aria-hidden="true">
+      <img class="poster" alt="" decoding="async">
+      <img class="poster" alt="" decoding="async">
+    </div>
+    <div class="v05-safe-stage" aria-hidden="true">
+      <img data-src="assets/toys/v05-mix-lab-hd.webp" alt="">
+    </div>
+
+    <section id="brand-stage" class="brand-stage" aria-label="蜜雪冰城品牌开场">
+      <picture class="brand-backdrop">
+        <source media="(min-width: 1200px)" srcset="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
+        <img src="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6" alt="">
+      </picture>
+      <div class="brand-lockup">
+        <img src="assets/brand/official-mixue-logo.svg" alt="蜜雪冰城">
+        <p>始于 1997 · 冰淇淋与茶</p>
+      </div>
+    </section>
+
+    <div class="shade" aria-hidden="true"></div>
+
+    <div id="corner-controls" class="corner-controls">
+      <img src="assets/brand/official-mixue-logo.svg" alt="蜜雪冰城">
+      <button id="autoplay-toggle" class="autoplay-toggle" type="button" aria-label="暂停自动巡游" title="暂停自动巡游">
+        <span aria-hidden="true">Ⅱ</span>
+      </button>
+      <button id="sound-toggle" class="sound-toggle" type="button" aria-label="开启声音" title="开启声音">
+        <span aria-hidden="true">♪</span>
+      </button>
+    </div>
+
+    <div id="scene-actions" class="scene-actions" aria-label="场景互动">
+      <button type="button" data-scene-action="boost" data-scene="v01" aria-label="让采购车加速" title="让采购车加速"><span class="action-cone" aria-hidden="true"><i></i></span></button>
+      <button type="button" data-scene-action="lemon" data-scene="v02" aria-label="接住柠檬" title="接住柠檬"><span class="action-fruit action-lemon" aria-hidden="true"></span></button>
+      <button type="button" data-scene-action="grape" data-scene="v03" aria-label="收好葡萄" title="收好葡萄"><span class="action-grapes" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <button type="button" data-scene-action="berry" data-scene="v04" aria-label="收好草莓" title="收好草莓"><span class="action-berry" aria-hidden="true"></span></button>
+      <button type="button" data-scene-action="mix" data-scene="v05" aria-label="开始调饮" title="开始调饮"><span class="action-cup" aria-hidden="true"><i></i></span></button>
+      <button type="button" data-scene-action="dance" data-scene="v06" aria-label="让雪王们一起跳舞" title="让雪王们一起跳舞"><span class="action-crown" aria-hidden="true"><i></i></span></button>
+    </div>
+
+    <div id="ingredient-tray" class="ingredient-tray" aria-hidden="true">
+      <span class="tray-lemon"><i></i><b id="lemon-count">0</b></span>
+      <span class="tray-grape"><i></i><b id="grape-count">0</b></span>
+      <span class="tray-berry"><i></i><b id="berry-count">0</b></span>
+    </div>
+
+    <div id="mix-bench" class="mix-bench" aria-hidden="true" inert>
+      <div class="mix-choices" role="group" aria-label="选择调饮配方">
+        <button type="button" data-mix="lemon" aria-label="柠檬配方" title="柠檬配方"><span class="mix-dot lemon"></span></button>
+        <button type="button" data-mix="grape" aria-label="芋圆葡萄配方" title="芋圆葡萄配方"><span class="mix-dot grape"></span></button>
+        <button type="button" data-mix="berry" aria-label="草莓波波配方" title="草莓波波配方"><span class="mix-dot berry"></span></button>
+      </div>
+      <div class="mix-products" aria-label="调制完成的三杯真实饮品">
+        <button type="button" class="mix-product" data-product="lemon" aria-label="选择真实冰鲜柠檬水" title="选择柠檬水">
+          <img data-src="assets/products/real-lemonade.png" alt="真实冰鲜柠檬水">
+          <span>柠檬水</span>
+        </button>
+        <button type="button" class="mix-product" data-product="grape" aria-label="选择真实芋圆葡萄" title="选择芋圆葡萄">
+          <img data-src="assets/products/real-taro-grape.png" alt="真实芋圆葡萄">
+          <span>芋圆葡萄</span>
+        </button>
+        <button type="button" class="mix-product" data-product="berry" aria-label="选择真实草莓波波" title="选择草莓波波">
+          <img data-src="assets/products/real-strawberry-bobo.png" alt="真实草莓波波">
+          <span>草莓波波</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="final-brand" class="final-brand" aria-hidden="true">
+      <strong>蜜雪冰城</strong>
+    </div>
+    <div id="final-menu" class="final-menu" aria-hidden="true">
+      <strong>今日菜单</strong>
+      <ul>
+        <li><b>柠檬水</b><span>鲜柠调成的清爽果饮</span></li>
+        <li><b>芋圆葡萄</b><span>葡萄果香搭配Q弹芋圆</span></li>
+        <li><b>草莓波波</b><span>草莓风味搭配晶莹波波</span></li>
+      </ul>
+    </div>
+    <div id="final-products" class="final-products" aria-label="今日菜单真实饮品" aria-hidden="true" inert>
+      <button type="button" data-final-product="lemon" aria-label="选择冰鲜柠檬水" title="选择柠檬水"><img data-src="assets/products/real-lemonade.png" alt="冰鲜柠檬水"><span>柠檬水</span></button>
+      <button type="button" data-final-product="grape" aria-label="选择芋圆葡萄" title="选择芋圆葡萄"><img data-src="assets/products/real-taro-grape.png" alt="芋圆葡萄"><span>芋圆葡萄</span></button>
+      <button type="button" data-final-product="berry" aria-label="选择草莓波波" title="选择草莓波波"><img data-src="assets/products/real-strawberry-bobo.png" alt="草莓波波"><span>草莓波波</span></button>
+    </div>
+
+    <div class="dance-trio" aria-hidden="true">
+      <img data-src="assets/toys/snow-kings-dance-v4.png" alt="">
+    </div>
+
+    <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+
+    <section id="caption" class="caption align-center">
+      <h1 id="title">蜜雪冰城</h1>
+      <p id="copy">始于 1997 · 冰淇淋与茶</p>
+    </section>
+
+    <div id="loading" class="loading" hidden>
+      <span id="loading-label">准备下一幕</span>
+      <i><b id="loading-fill"></b></i>
+    </div>
+
+    <audio id="journey-score" preload="auto" autoplay playsinline src="assets/audio/mixue-authorized-cut-v4-departure-focus.mp3"></audio>
+    <p id="status" class="sr-only" aria-live="polite"></p>
+  </main>
+  <div id="scroll-space" aria-hidden="true"></div>
+
+  <noscript>此体验需要启用 JavaScript。</noscript>
+  <script src="config.js"></script>
+  <script src="assets/sequences/manifest.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
