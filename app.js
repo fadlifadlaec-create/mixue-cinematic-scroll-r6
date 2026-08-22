@@ -4,150 +4,325 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const pad = (value) => String(value).padStart(4, "0");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const products = {
     lemon: {
-      name: "冰鲜柠檬水", image: "../assets/products/real-lemonade.png", number: "01",
-      note: "刚跑完八百米的订单", values: [72, 24, 92],
-      journeyTitle: "柠檬把甜拉亮。", journeyText: "第一口先到的是清爽。我们不需要把所有原料都装上车，只寻找这一杯真正需要的那一种。",
-      match: "高清爽、轻口感，答案直接而明亮。", now: "刚跑完一段路，想把燥热放下。",
-      response: "鲜柠的酸甜先把味觉拉亮，再让冰凉慢慢接住今天。", quote: "“把复杂的一天，先还原成清亮的一口。”", slip: "你选择了清爽和轻口感。"
+      name: "冰鲜柠檬水",
+      recipe: { fruit: "lemon", texture: "clear", ice: "full" },
+      ingredientTitle: "先让柠檬醒来。",
+      ingredientLine: "压下红色把手，柠檬越过跷跷板，清爽就有了起点。",
+      journeyTitle: "柠檬把甜拉亮。",
+      journeyText: "车轮追着黄色跑。柠檬落进车斗的那一刻，整条路都亮了。",
+      orderFeedback: "01 已放进小车",
+      recipeFeedback: "配方正好接住第一张纸条。",
+      finalStory: "把复杂的一天，先还原成清亮的一口。",
     },
     grape: {
-      name: "芋圆葡萄", image: "../assets/products/real-taro-grape.png", number: "02",
-      note: "结束了很长一天的订单", values: [86, 84, 45],
-      journeyTitle: "葡萄让时间慢一点。", journeyText: "果香先铺开，芋圆再留下可以咀嚼的停顿。这一杯不是催你赶路，而是允许你慢下来。",
-      match: "高果味、丰富口感，适合把节奏放慢。", now: "结束了很长的一天，不想马上赶往下一件事。",
-      response: "葡萄果香先打开一层，软糯芋圆再把一口的时间轻轻拉长。", quote: "“有些甜，不催你，只陪你慢慢嚼完。”", slip: "你选择了果香和丰富口感。"
+      name: "芋圆葡萄",
+      recipe: { fruit: "grape", texture: "taro", ice: "light" },
+      ingredientTitle: "再让葡萄绕一圈。",
+      ingredientLine: "齿轮慢慢转，果香先铺开，芋圆替今天留下一拍。",
+      journeyTitle: "葡萄让时间慢一点。",
+      journeyText: "葡萄滚进车斗，路没有变短，但赶路的人可以先慢下来。",
+      orderFeedback: "02 已放进小车",
+      recipeFeedback: "果香和芋圆，把第二张纸条放慢了一拍。",
+      finalStory: "有些甜不催你，只陪你慢慢嚼完。",
     },
     berry: {
-      name: "草莓波波", image: "../assets/products/real-strawberry-bobo.png", number: "03",
-      note: "今天值得草莓味的订单", values: [94, 65, 58],
-      journeyTitle: "草莓给今天换一种颜色。", journeyText: "不是每一种快乐都需要理由。草莓和波波把普通的一天调亮，这一次我们不播放错误的蛋糕影片。",
-      match: "高果味、适中口感，把今天调得更轻快。", now: "没有坏消息，也不需要庆功，只是想认真奖励今天。",
-      response: "草莓风味把颜色点亮，晶莹波波让轻快的节奏留在每一口。", quote: "“普通的一天，也值得被认真地甜一下。”", slip: "你选择了明亮果味和轻快口感。"
-    }
+      name: "草莓波波",
+      recipe: { fruit: "berry", texture: "bobo", ice: "full" },
+      ingredientTitle: "最后，把草莓弹高一点。",
+      ingredientLine: "弹簧一松，草莓越过红色弧线。普通的一天也有了庆祝的理由。",
+      journeyTitle: "草莓给今天加一颗星。",
+      journeyText: "这次不借用蛋糕影片。草莓从机关台直接落进真实杯子，故事才算完整。",
+      orderFeedback: "03 已放进小车",
+      recipeFeedback: "草莓和波波，刚好接住第三张纸条。",
+      finalStory: "普通的一天，也值得被认真地甜一下。",
+    },
   };
-  const state = { order: "lemon", match: "lemon", history: [], playing: false, sound: false };
+  const chapters = $$(".chapter");
+  const state = {
+    order: "lemon",
+    recipe: { ...products.lemon.recipe },
+    activeIndex: 0,
+    autoEnabled: !reduceMotion,
+    autoTimer: 0,
+    resumeTimer: 0,
+    motionTokens: {},
+    visited: new Set(),
+    found: new Set(),
+    sound: false,
+    soundUserMuted: false,
+    celebrating: false,
+    productsRevealed: false,
+  };
   const audio = $("#journey-score");
-  const toast = $("#toast");
   let toastTimer = 0;
 
   function showToast(message) {
+    const toast = $("#toast");
     toast.textContent = message;
     toast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1900);
   }
 
-  function chooseOrder(id, move = false) {
-    state.order = id;
-    $$('[data-order]').forEach((button) => button.setAttribute("aria-checked", String(button.dataset.order === id)));
-    $("#letter-feedback").textContent = `已选中：${products[id].note}`;
-    const motion = config.motion[id];
-    $("#journey-frame").src = motion ? motion.path.replace("{frame}", pad(motion.from)) : products[id].image;
-    $("#journey-frame").alt = motion ? `雪王寻找${id === "lemon" ? "柠檬" : "葡萄"}` : "真实草莓波波";
-    $("#journey-title").textContent = products[id].journeyTitle;
-    $("#journey-text").textContent = products[id].journeyText;
-    $("#play-ingredient").innerHTML = motion ? '看两秒采购 <span>▶</span>' : '看草莓抵达 <span>✦</span>';
-    applyPreset(id, false);
-    if (move) $("#journey").scrollIntoView({ behavior: "smooth" });
+  function setSoundUi() {
+    const button = $("#sound-toggle");
+    button.setAttribute("aria-pressed", String(state.sound));
+    button.setAttribute("aria-label", state.sound ? "关闭音乐" : "开启音乐");
+    button.querySelector("span").textContent = state.sound ? "♫" : "♪";
   }
 
-  function values() { return [$("#fruit").valueAsNumber, $("#texture").valueAsNumber, $("#fresh").valueAsNumber]; }
-  function nearestMatch(current) {
-    return Object.entries(products).map(([id, p]) => [id, p.values.reduce((sum, value, index) => sum + Math.pow(value - current[index], 2), 0)])
-      .sort((a, b) => a[1] - b[1])[0][0];
-  }
-  function renderMatch(id) {
-    state.match = id;
-    const product = products[id];
-    ["fruit", "texture", "fresh"].forEach((name) => { $(`#${name}-value`).textContent = $(`#${name}`).value; });
-    $("#liquid-cup").dataset.match = id;
-    $("#match-name").textContent = product.name; $("#match-reason").textContent = product.match;
-    $("#story-name").textContent = product.name; $("#story-product").src = product.image; $("#story-product").alt = product.name;
-    $("#story-number").textContent = product.number; $("#story-now").textContent = product.now; $("#story-response").textContent = product.response; $("#story-quote").textContent = product.quote;
-    $("#slip-name").textContent = product.name; $("#slip-product").src = product.image; $("#slip-product").alt = product.name; $("#slip-reason").textContent = product.slip;
-  }
-  function setValues(next, remember = true) {
-    if (remember) state.history.push(values());
-    ["fruit", "texture", "fresh"].forEach((name, index) => { $(`#${name}`).value = next[index]; });
-    renderMatch(nearestMatch(next));
-  }
-  function applyPreset(id, remember = true) { setValues(products[id].values, remember); }
-
-  async function playMotion() {
-    if (state.playing) return;
-    const motion = config.motion[state.order];
-    if (!motion) {
-      const image = $("#journey-frame");
-      image.animate([{ transform: "scale(.94)", opacity: .2 }, { transform: "scale(1)", opacity: 1 }], { duration: 700, easing: "cubic-bezier(.2,.8,.2,1)" });
-      $("#motion-status").textContent = "草莓订单使用真实饮品图，不再借用与故事无关的蛋糕视频。";
-      return;
+  async function unlockAudio(fromGesture = false) {
+    if (state.soundUserMuted || state.sound) return;
+    audio.volume = 0.52;
+    try {
+      await audio.play();
+      state.sound = true;
+      setSoundUi();
+      if (fromGesture) showToast("音乐已开启");
+    } catch (_) {
+      state.sound = false;
+      setSoundUi();
     }
-    state.playing = true;
-    const loading = $("#journey-loading");
-    const bar = loading.querySelector("b");
-    loading.hidden = false; bar.style.width = "0";
-    const frames = [];
-    for (let frame = motion.from; frame <= motion.to; frame += 1) {
+  }
+
+  function frameUrl(sequence, frame) {
+    return `${sequence.path.replace("{frame}", pad(frame))}?v=${config.assetVersion}`;
+  }
+
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
       const image = new Image();
       image.decoding = "async";
-      image.src = `${motion.path.replace("{frame}", pad(frame))}?v=${config.assetVersion}`;
-      frames.push(image.decode?.().catch(() => {}) || Promise.resolve());
-      if ((frame - motion.from) % 5 === 0) bar.style.width = `${Math.round((frame - motion.from) / (motion.to - motion.from) * 100)}%`;
-    }
-    await Promise.all(frames); bar.style.width = "100%"; loading.hidden = true;
-    $("#motion-status").textContent = "采购进行中 · 播完会停在原料上，由你决定何时继续。";
-    const start = performance.now();
-    const duration = (motion.to - motion.from + 1) / motion.fps * 1000;
-    await new Promise((resolve) => {
-      function tick(now) {
-        const index = Math.min(motion.to, motion.from + Math.floor((now - start) / 1000 * motion.fps));
-        $("#journey-frame").src = `${motion.path.replace("{frame}", pad(index))}?v=${config.assetVersion}`;
-        if (now - start < duration) requestAnimationFrame(tick); else resolve();
-      }
-      requestAnimationFrame(tick);
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = url;
     });
-    state.playing = false;
-    $("#motion-status").textContent = "原料已找到。现在由你决定：继续调饮，或回看这一段。";
   }
 
-  $$('[data-order]').forEach((button) => button.addEventListener("click", () => chooseOrder(button.dataset.order)));
-  $$('[data-choice]').forEach((article) => article.querySelector("button").addEventListener("click", () => { chooseOrder(article.dataset.choice); $("#letters").scrollIntoView({ behavior: "smooth" }); showToast(`已记住：${products[article.dataset.choice].name}`); }));
-  $("#accept-order").addEventListener("click", () => chooseOrder(state.order, true));
-  $("#play-ingredient").addEventListener("click", playMotion);
-  ["fruit", "texture", "fresh"].forEach((name) => {
-    const slider = $(`#${name}`);
-    slider.addEventListener("pointerdown", () => state.history.push(values()), { passive: true });
-    slider.addEventListener("keydown", () => state.history.push(values()));
-    slider.addEventListener("input", () => renderMatch(nearestMatch(values())));
-  });
-  $("#undo-flavor").addEventListener("click", () => { const prior = state.history.pop(); if (prior) setValues(prior, false); else showToast("已经是第一步"); });
-  $("#reset-flavor").addEventListener("click", () => setValues([50, 50, 50]));
-  $("#skip-flavor").addEventListener("click", () => { applyPreset(state.order); showToast("已按纸条给出推荐"); });
-  $("#show-result").addEventListener("click", () => { $("#result-slip").classList.add("is-open"); $("#result-slip").setAttribute("aria-hidden", "false"); });
-  $("#close-slip").addEventListener("click", () => { $("#result-slip").classList.remove("is-open"); $("#result-slip").setAttribute("aria-hidden", "true"); });
-  $("#change-mood").addEventListener("click", () => $("#letters").scrollIntoView({ behavior: "smooth" }));
-  $("#crown-egg").addEventListener("click", () => { const dance = $("#dance-trio"); dance.hidden = !dance.hidden; showToast(dance.hidden ? "雪王们回到队伍" : "皇冠收到：一起跳一下"); });
+  function cancelMotion(key) {
+    state.motionTokens[key] = (state.motionTokens[key] || 0) + 1;
+  }
+
+  async function playSequence(key, imageNode, progressNode, options = {}) {
+    const sequence = config.sequences[key];
+    if (!sequence || reduceMotion) return;
+    const token = (state.motionTokens[key] || 0) + 1;
+    state.motionTokens[key] = token;
+    const control = options.control;
+    control?.classList.add("is-playing");
+    const ahead = new Map();
+    const duration = ((sequence.to - sequence.from + 1) / config.fps) * 1000;
+    const started = performance.now();
+
+    function prefetch(from) {
+      for (let frame = from; frame <= Math.min(sequence.to, from + 9); frame += 1) {
+        if (!ahead.has(frame)) ahead.set(frame, loadImage(frameUrl(sequence, frame)).catch(() => null));
+      }
+    }
+
+    try {
+      prefetch(sequence.from);
+      for (let frame = sequence.from; frame <= sequence.to; frame += 1) {
+        if (state.motionTokens[key] !== token) return;
+        prefetch(frame + 1);
+        const image = await ahead.get(frame);
+        ahead.delete(frame);
+        if (image) imageNode.src = image.src;
+        const ratio = (frame - sequence.from + 1) / (sequence.to - sequence.from + 1);
+        if (progressNode) progressNode.style.width = `${ratio * 100}%`;
+        const due = started + ratio * duration;
+        const wait = Math.max(0, due - performance.now());
+        if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+      if (options.finalSrc) imageNode.src = options.finalSrc;
+    } finally {
+      if (state.motionTokens[key] === token) control?.classList.remove("is-playing");
+    }
+  }
+
+  function updateOrderUi() {
+    const product = products[state.order];
+    $$('[data-order]').forEach((button) => button.setAttribute("aria-checked", String(button.dataset.order === state.order)));
+    $("#order-feedback").textContent = product.orderFeedback;
+    $("#ingredient-title").textContent = product.ingredientTitle;
+    $("#ingredient-line").textContent = product.ingredientLine;
+    $("#journey-title").textContent = product.journeyTitle;
+    $("#journey-text").textContent = product.journeyText;
+    $("#final-choice").textContent = product.name;
+    $("#final-story").textContent = product.finalStory;
+    $$('[data-final-product]').forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.finalProduct === state.order)));
+  }
+
+  function setRecipe(recipe) {
+    state.recipe = { ...recipe };
+    $$('[data-recipe]').forEach((button) => button.setAttribute("aria-pressed", String(state.recipe[button.dataset.recipe] === button.dataset.value)));
+    renderRecipe();
+  }
+
+  function recipeMatch() {
+    return Object.entries(products).find(([, product]) => Object.entries(product.recipe).every(([key, value]) => state.recipe[key] === value))?.[0] || null;
+  }
+
+  function renderRecipe() {
+    const match = recipeMatch();
+    if (match) {
+      $("#recipe-name").textContent = products[match].name;
+      $("#recipe-feedback").textContent = products[match].recipeFeedback;
+      return;
+    }
+    $("#recipe-name").textContent = "雪王试验杯";
+    $("#recipe-feedback").textContent = "有点意外。再换一个口感，真实菜单就会出现。";
+  }
+
+  function selectOrder(id, options = {}) {
+    if (!products[id]) return;
+    state.order = id;
+    setRecipe(products[id].recipe);
+    updateOrderUi();
+    activateIngredient(id, false);
+    if (options.move) chapters[2].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    if (options.toast) showToast(`${products[id].name} · 订单已换`);
+  }
+
+  function activateIngredient(id, announce = true) {
+    state.found.add(id);
+    $$('[data-ingredient]').forEach((button) => button.classList.toggle("is-active", button.dataset.ingredient === id));
+    $$('[data-found]').forEach((node) => node.classList.toggle("is-found", state.found.has(node.dataset.found)));
+    $("#ingredient-title").textContent = products[id].ingredientTitle;
+    $("#ingredient-line").textContent = products[id].ingredientLine;
+    if (announce) showToast(`${products[id].name}的原料已找到`);
+    setTimeout(() => $(`[data-ingredient="${id}"]`)?.classList.remove("is-active"), 900);
+  }
+
+  async function playJourney() {
+    const image = $("#journey-frame");
+    const section = $("#journey");
+    cancelMotion("lemon");
+    cancelMotion("grape");
+    if (state.order === "berry") {
+      section.classList.add("poster-mode");
+      image.src = "assets/generated/ingredient-playground-paul-rand-mixue-r11.png";
+      image.alt = "草莓从原料机关弹入杯中";
+      $("#journey-progress").style.width = "100%";
+      image.animate([{ transform: "scale(.97)" }, { transform: "scale(1.02)" }, { transform: "scale(1)" }], { duration: 1500, easing: "cubic-bezier(.2,.8,.2,1)" });
+      return;
+    }
+    section.classList.remove("poster-mode");
+    image.alt = state.order === "lemon" ? "雪王寻找柠檬" : "雪王追上葡萄";
+    $("#journey-progress").style.width = "0";
+    await playSequence(state.order, image, $("#journey-progress"), { control: $("#replay-journey") });
+  }
+
+  function revealProducts() {
+    if (state.productsRevealed) return;
+    state.productsRevealed = true;
+    $$('[data-final-product]').forEach((button, index) => {
+      setTimeout(() => {
+        button.classList.add("is-visible");
+        if (index === 2) $("#crown-egg").classList.add("is-ready");
+      }, 520 + index * 420);
+    });
+  }
+
+  function setDance(open) {
+    state.celebrating = open;
+    const dance = $("#dance-trio");
+    dance.hidden = !open;
+    $("#crown-egg").setAttribute("aria-pressed", String(open));
+    $("#crown-egg").classList.toggle("is-ready", !open);
+    showToast(open ? "皇冠收到，雪王们一起跳" : "雪王们回到队伍");
+  }
+
+  function scheduleAutoTour(delay) {
+    clearTimeout(state.autoTimer);
+    if (!state.autoEnabled || state.activeIndex >= chapters.length - 1) return;
+    const dwell = delay ?? Number(chapters[state.activeIndex].dataset.dwell || 6500);
+    state.autoTimer = setTimeout(() => {
+      if (!state.autoEnabled) return;
+      chapters[state.activeIndex + 1].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    }, dwell);
+  }
+
+  function pauseForInput() {
+    if (!state.autoEnabled) return;
+    clearTimeout(state.autoTimer);
+    clearTimeout(state.resumeTimer);
+    state.resumeTimer = setTimeout(() => scheduleAutoTour(1200), config.autoTour.resumeAfterInputMs);
+  }
+
+  function setAutoEnabled(enabled) {
+    state.autoEnabled = enabled && !reduceMotion;
+    const button = $("#tour-toggle");
+    button.setAttribute("aria-pressed", String(state.autoEnabled));
+    button.setAttribute("aria-label", state.autoEnabled ? "暂停自动巡游" : "继续自动巡游");
+    button.querySelector("span").textContent = state.autoEnabled ? "Ⅱ" : "▶";
+    clearTimeout(state.autoTimer);
+    clearTimeout(state.resumeTimer);
+    if (state.autoEnabled) scheduleAutoTour(800);
+  }
+
+  function enterChapter(index) {
+    if (index === state.activeIndex && state.visited.has(index)) return;
+    state.activeIndex = index;
+    state.visited.add(index);
+    $("#chapter-label").textContent = chapters[index].dataset.chapter;
+    if (index === 2) playSequence("departure", $("#depart-frame"), $("#depart-progress"), { control: $("#replay-depart") });
+    if (index === 3) setTimeout(() => activateIngredient(state.order, false), 650);
+    if (index === 4) playJourney();
+    if (index === 5) setTimeout(() => setRecipe(products[state.order].recipe), 700);
+    if (index === 6) {
+      const finalSrc = "assets/keyframes/v06-end.png";
+      $("#final-brand").classList.remove("is-visible");
+      playSequence("homecoming", $("#final-frame"), null, { finalSrc });
+      setTimeout(() => $("#final-brand").classList.add("is-visible"), reduceMotion ? 0 : 3300);
+      setTimeout(revealProducts, reduceMotion ? 0 : 3700);
+    }
+    scheduleAutoTour();
+  }
+
+  $$('[data-order]').forEach((button) => button.addEventListener("click", () => selectOrder(button.dataset.order, { toast: true })));
+  $("#accept-order").addEventListener("click", () => selectOrder(state.order, { move: true }));
+  $$('[data-ingredient]').forEach((button) => button.addEventListener("click", () => { selectOrder(button.dataset.ingredient); activateIngredient(button.dataset.ingredient); }));
+  $$('[data-recipe]').forEach((button) => button.addEventListener("click", () => { state.recipe[button.dataset.recipe] = button.dataset.value; renderRecipe(); $$(`[data-recipe="${button.dataset.recipe}"]`).forEach((node) => node.setAttribute("aria-pressed", String(node === button))); }));
+  $$('[data-final-product]').forEach((button) => button.addEventListener("click", () => { selectOrder(button.dataset.finalProduct, { toast: true }); button.animate([{ transform: "translateY(0)" }, { transform: "translateY(-12px)" }, { transform: "translateY(0)" }], { duration: 520, easing: "ease-out" }); }));
+  $("#replay-depart").addEventListener("click", () => playSequence("departure", $("#depart-frame"), $("#depart-progress"), { control: $("#replay-depart") }));
+  $("#replay-journey").addEventListener("click", playJourney);
+  $("#crown-egg").addEventListener("click", () => setDance(!state.celebrating));
+  $("#restart-story").addEventListener("click", () => { setDance(false); chapters[1].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" }); });
+  $("#tour-toggle").addEventListener("click", () => { setAutoEnabled(!state.autoEnabled); showToast(state.autoEnabled ? "自动巡游继续" : "自动巡游已暂停"); });
   $("#sound-toggle").addEventListener("click", async () => {
-    state.sound = !state.sound;
-    if (state.sound) { audio.volume = .5; await audio.play().catch(() => { state.sound = false; showToast("浏览器需要再次点击才能播放声音"); }); } else audio.pause();
-    $("#sound-toggle").setAttribute("aria-pressed", String(state.sound)); $("#sound-toggle").setAttribute("aria-label", state.sound ? "关闭音乐" : "开启音乐");
+    if (state.sound) {
+      audio.pause(); state.sound = false; state.soundUserMuted = true;
+    } else {
+      state.soundUserMuted = false; await unlockAudio(true);
+    }
+    setSoundUi();
   });
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape") $("#close-slip").click(); });
+  document.addEventListener("pointerdown", () => unlockAudio(false), { once: true, capture: true });
+  ["wheel", "touchstart"].forEach((name) => addEventListener(name, pauseForInput, { passive: true }));
+  document.addEventListener("keydown", (event) => {
+    if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) pauseForInput();
+    if (event.key === "Escape" && state.celebrating) setDance(false);
+  });
 
-  const chapters = $$(".chapter");
-  const chapterObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { if (entry.isIntersecting) $("#chapter-label").textContent = entry.target.dataset.chapter; });
-  }, { threshold: .55 });
-  chapters.forEach((chapter) => chapterObserver.observe(chapter));
-  addEventListener("scroll", () => { const max = document.documentElement.scrollHeight - innerHeight; $("#reading-progress").style.width = `${Math.min(100, scrollY / Math.max(1, max) * 100)}%`; }, { passive: true });
+  const visible = new Map();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => visible.set(entry.target, entry.intersectionRatio));
+    const best = [...visible.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (best && best[1] > .18) enterChapter(chapters.indexOf(best[0]));
+  }, { threshold: [0, .2, .4, .6], rootMargin: "-18% 0px -18% 0px" });
+  chapters.forEach((chapter) => observer.observe(chapter));
+  addEventListener("scroll", () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    $("#reading-progress").style.width = `${Math.min(100, scrollY / Math.max(1, max) * 100)}%`;
+  }, { passive: true });
 
-  chooseOrder("lemon");
-  audio.volume = .5;
-  audio.play().then(() => {
-    state.sound = true;
-    $("#sound-toggle").setAttribute("aria-pressed", "true");
-    $("#sound-toggle").setAttribute("aria-label", "关闭音乐");
-  }).catch(() => {});
+  selectOrder("lemon");
+  setAutoEnabled(!reduceMotion);
+  audio.volume = .52;
+  unlockAudio(false);
+  window.__MIXUE_DEBUG__ = { state, products, playSequence, selectOrder, revealProducts, setDance, setAutoEnabled };
 })();

@@ -1,62 +1,110 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e9232c">
-  <meta name="description" content="选一种今天的心情，和雪王一起完成属于你的那杯甜蜜。"><title>蜜雪冰城 · 今天想要哪一种甜蜜？</title>
-  <link rel="preload" as="image" href="assets/keyframes/castle-original-wide.png"><link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#home" aria-label="回到开头"><img src="assets/brand/official-mixue-logo.svg" alt="蜜雪冰城"></a>
-    <nav aria-label="章节"><a href="#map">三杯</a><a href="#letters">纸条</a><a href="#flavor">风味</a><a href="#result">结果</a></nav>
-    <div class="top-actions"><span id="chapter-label">01 / 07</span><button id="sound-toggle" class="icon-button" type="button" aria-label="开启音乐" aria-pressed="false" title="音乐开关">♪</button></div>
-    <i class="reading-progress"><b id="reading-progress"></b></i>
-  </header>
-  <main>
-    <section id="home" class="chapter hero" data-chapter="01 / 07">
-      <img class="full-media" src="assets/keyframes/castle-original-wide.png" alt="像素积木风格的蜜雪冰城小镇"><div class="veil"></div>
-      <div class="hero-copy"><p class="eyebrow">一杯甜蜜，从此刻开始</p><h1>你今天，想要<br>哪一种甜蜜？</h1><p>清爽一点，果香一点，还是软糯一点。跟着雪王走一趟，最后带走属于你的那一杯。</p>
-        <div class="hero-actions"><a class="primary" href="#letters">开始选一杯 <span>→</span></a><a class="text-link" href="#map">先看看三杯有什么不同</a></div></div>
-      <a class="scroll-cue" href="#map"><span>往下看</span><i></i></a>
-    </section>
-    <section id="map" class="chapter product-map" data-chapter="02 / 07">
-      <div class="section-heading"><p class="eyebrow">今日甜蜜地图</p><h2>不是三杯饮料，<br>是三种此刻的需要。</h2><p>把鼠标停在一杯上，先听听它会怎样回应今天的你。</p></div>
-      <div class="product-lines">
-        <article data-choice="lemon"><button type="button" aria-label="选择冰鲜柠檬水"><img src="assets/products/real-lemonade.png" alt="冰鲜柠檬水"></button><div><small>想清醒一下</small><h3>冰鲜柠檬水</h3><p>鲜亮、清爽、直接。适合刚跑完一段路，也适合把复杂的一天先还原成清亮的一口。</p></div></article>
-        <article data-choice="grape"><button type="button" aria-label="选择芋圆葡萄"><img src="assets/products/real-taro-grape.png" alt="芋圆葡萄"></button><div><small>想慢慢嚼一会儿</small><h3>芋圆葡萄</h3><p>葡萄果香慢慢铺开，软糯芋圆让一杯饮料有了停顿。适合结束很长的一天，不急着马上赶路。</p></div></article>
-        <article data-choice="berry"><button type="button" aria-label="选择草莓波波"><img src="assets/products/real-strawberry-bobo.png" alt="草莓波波"></button><div><small>今天想甜一点</small><h3>草莓波波</h3><p>草莓风味和晶莹波波一起，把平常的一天调成更轻快的粉红色。适合分享，也适合奖励自己。</p></div></article>
-      </div><a class="next-link" href="#letters">去看看是谁写来的纸条 <span>↓</span></a>
-    </section>
-    <section id="letters" class="chapter letters" data-chapter="03 / 07">
-      <div class="letters-intro"><p class="eyebrow">开店前 · 07:57</p><h2>门缝下，塞进来三张纸条。</h2><p>我们不从“今天卖什么”开始，而从“今天谁需要一杯什么”开始。有人刚跑完一段路，想要一口清爽；有人结束了很长的一天，想慢慢嚼点甜；还有人只写了一句：今天值得草莓味。</p><p class="instruction">产品不是故事的主角。替一个人接下今天的订单。</p></div>
-      <div class="notes" role="radiogroup" aria-label="选择一张订单纸条">
-        <button type="button" data-order="lemon" role="radio" aria-checked="true"><span>01</span><p>“刚跑完八百米。<br>想让风再凉一点。”</p><b>替他接单</b></button>
-        <button type="button" data-order="grape" role="radio" aria-checked="false"><span>02</span><p>“今天有点长。<br>想慢慢嚼点甜。”</p><b>替她接单</b></button>
-        <button type="button" data-order="berry" role="radio" aria-checked="false"><span>03</span><p>“没有特别的理由。<br>今天值得草莓味。”</p><b>替她接单</b></button>
-      </div><button id="accept-order" class="primary" type="button">接下这张纸条 <span>→</span></button><p id="letter-feedback" class="feedback" aria-live="polite">已选中：刚跑完八百米的订单</p>
-    </section>
-    <section id="journey" class="chapter journey" data-chapter="04 / 07">
-      <div class="journey-media"><img id="journey-frame" src="assets/sequences/v02/frame_0001.webp" alt="雪王寻找新鲜原料"><div class="journey-shade"></div><div id="journey-loading" class="journey-loading" hidden><span>准备原料</span><i><b></b></i></div></div>
-      <div class="journey-copy"><p class="eyebrow">纸条已接下 · 采购出发</p><h2 id="journey-title">柠檬把甜拉亮。</h2><p id="journey-text">第一口先到的是清爽。我们不需要把所有原料都装上车，只寻找这一杯真正需要的那一种。</p><div class="journey-actions"><button id="play-ingredient" class="primary" type="button">看两秒采购 <span>▶</span></button><a class="text-link" href="#flavor">跳过动态，直接调饮</a></div><p id="motion-status" class="feedback" aria-live="polite">动态只在你要求时播放，不会把你困在影片里。</p></div>
-    </section>
-    <section id="flavor" class="chapter flavor-lab" data-chapter="05 / 07">
-      <div class="lab-copy"><p class="eyebrow">一杯饮料怎样成立</p><h2>不是随便加料，<br>是让口味回应一个人。</h2><p>调整三种感觉，看看你的选择最终会指向哪一杯真实饮品。</p>
-        <div class="sliders"><label>果味 <output id="fruit-value">72</output><input id="fruit" type="range" min="0" max="100" value="72"></label><label>口感 <output id="texture-value">24</output><input id="texture" type="range" min="0" max="100" value="24"></label><label>清爽度 <output id="fresh-value">92</output><input id="fresh" type="range" min="0" max="100" value="92"></label></div>
-        <div class="lab-actions"><button id="undo-flavor" type="button">撤销</button><button id="reset-flavor" type="button">重置</button><button id="skip-flavor" type="button">按纸条推荐</button></div></div>
-      <div class="cup-stage" aria-live="polite"><div id="liquid-cup" class="liquid-cup"><i class="liquid"></i><i class="bits bits-a"></i><i class="bits bits-b"></i><span>蜜雪冰城</span></div><div class="match-copy"><small>此刻更接近</small><h3 id="match-name">冰鲜柠檬水</h3><p id="match-reason">高清爽、轻口感，答案直接而明亮。</p></div><a class="primary" href="#story">读懂这一杯 <span>→</span></a></div>
-    </section>
-    <section id="story" class="chapter product-story" data-chapter="06 / 07">
-      <div class="story-visual"><img id="story-product" src="assets/products/real-lemonade.png" alt="冰鲜柠檬水"><span id="story-number">01</span></div>
-      <article><p class="eyebrow">适合你的，是</p><h2 id="story-name">冰鲜柠檬水</h2><dl><div><dt>你的此刻</dt><dd id="story-now">刚跑完一段路，想把燥热放下。</dd></div><div><dt>这一杯的回应</dt><dd id="story-response">鲜柠的酸甜先把味觉拉亮，再让冰凉慢慢接住今天。</dd></div></dl><blockquote id="story-quote">“把复杂的一天，先还原成清亮的一口。”</blockquote><a class="primary" href="#result">把这一杯送回小店 <span>→</span></a></article>
-    </section>
-    <section id="result" class="chapter finale" data-chapter="07 / 07">
-      <img class="full-media" src="assets/keyframes/v06-end.png" alt="雪王们带着饮品回到蜜雪冰城小店"><div class="finale-veil"></div>
-      <div class="finale-copy"><p class="eyebrow">订单完成</p><h2>你爱我，我爱你。</h2><p>不是一句循环播放的歌。<br>是有人记得，你今天想喝什么。</p><strong>一杯甜蜜，被选择，也被送到。</strong><div class="final-actions"><button id="change-mood" class="primary" type="button">换一种心情</button><button id="show-result" class="ghost" type="button">查看我的结果</button></div></div>
-      <aside id="result-slip" class="result-slip" aria-hidden="true"><button id="close-slip" type="button" aria-label="关闭结果">×</button><small>今日甜蜜订单</small><h3 id="slip-name">冰鲜柠檬水</h3><img id="slip-product" src="assets/products/real-lemonade.png" alt="冰鲜柠檬水"><p id="slip-reason">你选择了清爽和轻口感。</p><b>蜜雪冰城</b></aside>
-      <button id="crown-egg" class="crown-egg" type="button" aria-label="让雪王们跳舞" title="点皇冠"><span>♛</span></button><img id="dance-trio" class="dance-trio" src="assets/toys/snow-kings-dance-v4.png" alt="三位雪王一起跳舞" hidden>
-    </section>
-  </main>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div><audio id="journey-score" preload="auto" loop src="assets/audio/mixue-authorized-cut-v8-web-full-tour.mp3"></audio>
-  <script src="config.js"></script><script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#e61e2a" />
+    <meta name="description" content="和雪王接一张订单，找回原料，调出今天需要的那杯甜。" />
+    <title>蜜雪冰城 · 今天想把什么放下？</title>
+    <link rel="icon" href="assets/brand/official-mixue-logo.svg" />
+    <link rel="preload" as="image" href="assets/generated/hero-kamekura-mixue-r11.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="回到开头"><img src="assets/brand/official-mixue-logo.svg" alt="蜜雪冰城" /></a>
+      <nav aria-label="故事章节"><a href="#orders">接单</a><a href="#depart">出发</a><a href="#playground">找原料</a><a href="#lab">调饮</a><a href="#finale">回店</a></nav>
+      <div class="top-actions">
+        <span id="chapter-label">01 / 07</span>
+        <button id="tour-toggle" class="icon-button" type="button" aria-label="暂停自动巡游" aria-pressed="true" title="自动巡游"><span aria-hidden="true">Ⅱ</span></button>
+        <button id="sound-toggle" class="icon-button" type="button" aria-label="开启音乐" aria-pressed="false" title="音乐"><span aria-hidden="true">♪</span></button>
+      </div>
+      <i class="reading-progress"><b id="reading-progress"></b></i>
+    </header>
+
+    <main>
+      <section id="home" class="chapter hero" data-chapter="01 / 07" data-dwell="5200">
+        <img class="full-media" src="assets/generated/hero-kamekura-mixue-r11.png" alt="雪王们沿红色道路出发寻找原料" />
+        <div class="hero-copy">
+          <p class="eyebrow">07:57 · 蜜雪冰城</p>
+          <h1>今天，<br />想把什么放下？</h1>
+          <p>柜台刚亮，三张纸条同时落下。<br />一张要清醒，一张要慢下来，一张只想开心。</p>
+          <div class="hero-actions"><a class="primary" href="#orders">接第一张单 <span>→</span></a><a class="text-link" href="#finale">先看小店</a></div>
+        </div>
+        <a class="scroll-cue" href="#orders"><span>故事会自己往前走</span><i></i></a>
+      </section>
+
+      <section id="orders" class="chapter orders" data-chapter="02 / 07" data-dwell="7200">
+        <div class="section-heading">
+          <p class="eyebrow">三张纸条</p>
+          <h2>不是先选饮料。<br />先看今天缺什么。</h2>
+          <p>雪王会带着你选中的那张出发。没有操作时，第一张订单会继续故事；你随时可以换。</p>
+        </div>
+        <div class="order-strip" role="radiogroup" aria-label="选择今天的订单">
+          <button type="button" data-order="lemon" role="radio" aria-checked="true"><span class="order-no">01</span><img src="assets/products/real-lemonade.png" alt="冰鲜柠檬水" /><span class="order-copy"><small>刚跑完八百米</small><strong>“风，还不够凉。”</strong><b>冰鲜柠檬水</b></span></button>
+          <button type="button" data-order="grape" role="radio" aria-checked="false"><span class="order-no">02</span><img src="assets/products/real-taro-grape.png" alt="芋圆葡萄" /><span class="order-copy"><small>今天有点长</small><strong>“让时间慢一拍。”</strong><b>芋圆葡萄</b></span></button>
+          <button type="button" data-order="berry" role="radio" aria-checked="false"><span class="order-no">03</span><img src="assets/products/real-strawberry-bobo.png" alt="草莓波波" /><span class="order-copy"><small>没有特别原因</small><strong>“今天值得一颗星。”</strong><b>草莓波波</b></span></button>
+        </div>
+        <div class="section-action"><button id="accept-order" class="primary" type="button">纸条盖章 <span>→</span></button><p id="order-feedback" aria-live="polite">01 已放进小车</p></div>
+      </section>
+
+      <section id="depart" class="chapter cinema" data-chapter="03 / 07" data-dwell="7200">
+        <img id="depart-frame" class="cinema-frame" src="assets/sequences-hd/v01-clean-v5/frame_0001.webp" alt="雪王们从小店出发" />
+        <div class="cinema-shade"></div>
+        <div class="cinema-copy">
+          <p class="eyebrow">08:01 · 小车出发</p><h2>纸条一落，<br />雪王就动身。</h2><p>不是去送蛋糕。先去把这一杯真正需要的原料找回来。</p>
+          <button id="replay-depart" class="round-command" type="button" aria-label="重播出发片段" title="重播"><span>↻</span></button>
+        </div>
+        <div class="motion-progress" aria-hidden="true"><i id="depart-progress"></i></div>
+      </section>
+
+      <section id="playground" class="chapter playground" data-chapter="04 / 07" data-dwell="7600">
+        <img class="playground-art" src="assets/generated/ingredient-playground-paul-rand-mixue-r11.png" alt="雪王操作柠檬、葡萄和草莓原料机关" />
+        <div class="playground-copy"><p class="eyebrow">原料机关台</p><h2 id="ingredient-title">先让柠檬醒来。</h2><p id="ingredient-line">压下红色把手，柠檬越过跷跷板，清爽就有了起点。</p></div>
+        <button class="hotspot lemon" type="button" data-ingredient="lemon" aria-label="启动柠檬跷跷板"><span>01</span></button>
+        <button class="hotspot grape" type="button" data-ingredient="grape" aria-label="转动葡萄齿轮"><span>02</span></button>
+        <button class="hotspot berry" type="button" data-ingredient="berry" aria-label="弹出草莓"><span>03</span></button>
+        <div class="ingredient-meter" aria-label="已经找到的原料"><i data-found="lemon"></i><i data-found="grape"></i><i data-found="berry"></i></div>
+      </section>
+
+      <section id="journey" class="chapter cinema journey" data-chapter="05 / 07" data-dwell="7200">
+        <img id="journey-frame" class="cinema-frame" src="assets/sequences-hd/v02/frame_0001.webp" alt="雪王寻找柠檬" />
+        <div class="cinema-shade"></div>
+        <div class="cinema-copy"><p class="eyebrow">08:07 · 原料到手</p><h2 id="journey-title">柠檬把甜拉亮。</h2><p id="journey-text">车轮追着黄色跑。柠檬落进车斗的那一刻，整条路都亮了。</p><button id="replay-journey" class="round-command" type="button" aria-label="重播采购片段" title="重播"><span>↻</span></button></div>
+        <div class="motion-progress" aria-hidden="true"><i id="journey-progress"></i></div>
+      </section>
+
+      <section id="lab" class="chapter lab" data-chapter="06 / 07" data-dwell="9200">
+        <img class="lab-art" src="assets/generated/v05-mix-lab.png" alt="雪王们在调饮台处理柠檬、葡萄和冰块" />
+        <div class="lab-shade"></div>
+        <div class="lab-panel">
+          <p class="eyebrow">08:12 · 调饮台</p><h2>把答案，<br />调进杯子里。</h2>
+          <div class="recipe-row" aria-label="果味"><span>果味</span><button type="button" data-recipe="fruit" data-value="lemon">柠檬</button><button type="button" data-recipe="fruit" data-value="grape">葡萄</button><button type="button" data-recipe="fruit" data-value="berry">草莓</button></div>
+          <div class="recipe-row" aria-label="口感"><span>口感</span><button type="button" data-recipe="texture" data-value="clear">清透</button><button type="button" data-recipe="texture" data-value="taro">芋圆</button><button type="button" data-recipe="texture" data-value="bobo">波波</button></div>
+          <div class="recipe-row" aria-label="冰感"><span>冰感</span><button type="button" data-recipe="ice" data-value="light">轻冰</button><button type="button" data-recipe="ice" data-value="full">冰爽</button></div>
+          <div class="recipe-answer" aria-live="polite"><small>杯子正在回答</small><strong id="recipe-name">冰鲜柠檬水</strong><p id="recipe-feedback">配方正好接住第一张纸条。</p></div>
+          <a class="primary" href="#finale">端上柜台 <span>→</span></a>
+        </div>
+      </section>
+
+      <section id="finale" class="chapter finale" data-chapter="07 / 07" data-dwell="12000">
+        <div class="final-canvas">
+          <img id="final-frame" src="assets/keyframes/v06-end.png" alt="雪王们回到亮灯的蜜雪冰城" />
+          <div id="final-brand" class="final-brand">蜜雪冰城</div>
+          <div class="final-copy"><p class="eyebrow">08:16 · 小店亮灯</p><h2>原料回来了。<br />今天需要的那一口，也有了答案。</h2></div>
+          <div id="final-products" class="final-products" aria-label="今日菜单">
+            <button type="button" data-final-product="lemon"><img src="assets/products/real-lemonade.png" alt="冰鲜柠檬水" /><span>冰鲜柠檬水</span></button>
+            <button type="button" data-final-product="grape"><img src="assets/products/real-taro-grape.png" alt="芋圆葡萄" /><span>芋圆葡萄</span></button>
+            <button type="button" data-final-product="berry"><img src="assets/products/real-strawberry-bobo.png" alt="草莓波波" /><span>草莓波波</span></button>
+          </div>
+          <button id="crown-egg" class="crown-egg" type="button" aria-label="让雪王们跳舞" aria-pressed="false" title="点皇冠"><span>♛</span></button>
+          <img id="dance-trio" class="dance-trio" src="assets/generated/snow-kings-dance-v4.png" alt="三位雪王牵手跳舞" hidden />
+        </div>
+        <div class="final-note"><strong id="final-choice">冰鲜柠檬水</strong><span id="final-story">把复杂的一天，先还原成清亮的一口。</span><button id="restart-story" type="button">再接一张单</button></div>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <audio id="journey-score" preload="auto" loop src="assets/audio/mixue-authorized-cut-v8-web-full-tour.mp3"></audio>
+    <script src="config.js"></script><script src="app.js"></script>
+  </body>
 </html>
