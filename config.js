@@ -1,6 +1,6 @@
 window.CREATIVE_V3_CONFIG = {
-  version: "creative-v4-story",
-  assetVersion: "20260821-interaction-r6",
+  version: "creative-v5-order-lab",
+  assetVersion: "20260822-order-lab-r9",
   concurrency: { desktop: 6, mobile: 4 },
   cacheLimit: { desktop: 36, mobile: 28 },
   wheelIdleMs: 400,

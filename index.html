@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#e9232c">
   <meta name="description" content="蜜雪冰城互动式甜蜜世界">
   <title>蜜雪冰城 · 甜蜜世界</title>
-  <link rel="preload" as="image" media="(min-width: 1200px)" href="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
-  <link rel="preload" as="image" media="(max-width: 1199px)" href="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
+  <link rel="preload" as="image" media="(min-width: 1200px)" href="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260822-order-lab-r9">
+  <link rel="preload" as="image" media="(max-width: 1199px)" href="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260822-order-lab-r9">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23e9232c'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white'%3EM%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -22,14 +22,35 @@
       <img data-src="assets/toys/v05-mix-lab-hd.webp" alt="">
     </div>
 
-    <section id="brand-stage" class="brand-stage" aria-label="蜜雪冰城品牌开场">
+    <section id="brand-stage" class="brand-stage" aria-label="蜜雪冰城甜蜜订单">
       <picture class="brand-backdrop">
-        <source media="(min-width: 1200px)" srcset="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6">
-        <img src="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260821-interaction-r6" alt="">
+        <source media="(min-width: 1200px)" srcset="assets/sequences-hd/v01-clean-v5/frame_0001.webp?v=20260822-order-lab-r9">
+        <img src="assets/sequences/v01-clean-v5/frame_0001.webp?v=20260822-order-lab-r9" alt="">
       </picture>
       <div class="brand-lockup">
         <img src="assets/brand/official-mixue-logo.svg" alt="蜜雪冰城">
-        <p>始于 1997 · 冰淇淋与茶</p>
+        <p>一杯甜蜜，等你一起完成</p>
+      </div>
+      <div id="order-brief" class="order-brief" aria-label="选择今天的甜蜜订单">
+        <p class="order-kicker">今日甜蜜订单</p>
+        <h1>你想把哪种快乐送出去？</h1>
+        <div class="order-options" role="radiogroup" aria-label="口味需求">
+          <button type="button" data-order="lemon" role="radio" aria-checked="true">
+            <span class="order-swatch lemon" aria-hidden="true"></span>
+            <b>清爽解腻</b><small>冰鲜柠檬水</small>
+          </button>
+          <button type="button" data-order="grape" role="radio" aria-checked="false">
+            <span class="order-swatch grape" aria-hidden="true"></span>
+            <b>果香有嚼感</b><small>芋圆葡萄</small>
+          </button>
+          <button type="button" data-order="berry" role="radio" aria-checked="false">
+            <span class="order-swatch berry" aria-hidden="true"></span>
+            <b>甜润有波波</b><small>草莓波波</small>
+          </button>
+        </div>
+        <button id="start-order" class="start-order" type="button">
+          <span>接单出发</span><i aria-hidden="true">→</i>
+        </button>
       </div>
     </section>
 
@@ -60,11 +81,18 @@
       <span class="tray-berry"><i></i><b id="berry-count">0</b></span>
     </div>
 
+    <section id="mission-hud" class="mission-hud" aria-live="polite" aria-hidden="true">
+      <span id="mission-step">01 / 04</span>
+      <div><b id="mission-title">出发采购</b><small id="mission-copy">帮雪王把今天的原料带回店里</small></div>
+      <i><b id="mission-progress"></b></i>
+    </section>
+
     <div id="mix-bench" class="mix-bench" aria-hidden="true" inert>
-      <div class="mix-choices" role="group" aria-label="选择调饮配方">
-        <button type="button" data-mix="lemon" aria-label="柠檬配方" title="柠檬配方"><span class="mix-dot lemon"></span></button>
-        <button type="button" data-mix="grape" aria-label="芋圆葡萄配方" title="芋圆葡萄配方"><span class="mix-dot grape"></span></button>
-        <button type="button" data-mix="berry" aria-label="草莓波波配方" title="草莓波波配方"><span class="mix-dot berry"></span></button>
+      <div class="mix-choices" role="radiogroup" aria-label="根据订单选择调饮方向">
+        <p><span>甜蜜调饮所</span><b id="mix-prompt">订单要：清爽解腻</b></p>
+        <button type="button" data-mix="lemon" role="radio" aria-checked="false"><span class="mix-dot lemon"></span><b>鲜柠清爽</b><small>酸甜 · 解腻</small></button>
+        <button type="button" data-mix="grape" role="radio" aria-checked="false"><span class="mix-dot grape"></span><b>葡萄芋圆</b><small>果香 · 嚼感</small></button>
+        <button type="button" data-mix="berry" role="radio" aria-checked="false"><span class="mix-dot berry"></span><b>草莓波波</b><small>甜润 · Q弹</small></button>
       </div>
       <div class="mix-products" aria-label="调制完成的三杯真实饮品">
         <button type="button" class="mix-product" data-product="lemon" aria-label="选择真实冰鲜柠檬水" title="选择柠檬水">
@@ -85,19 +113,22 @@
     <div id="final-brand" class="final-brand" aria-hidden="true">
       <strong>蜜雪冰城</strong>
     </div>
-    <div id="final-menu" class="final-menu" aria-hidden="true">
-      <strong>今日菜单</strong>
-      <ul>
-        <li><b>柠檬水</b><span>鲜柠调成的清爽果饮</span></li>
-        <li><b>芋圆葡萄</b><span>葡萄果香搭配Q弹芋圆</span></li>
-        <li><b>草莓波波</b><span>草莓风味搭配晶莹波波</span></li>
-      </ul>
-    </div>
-    <div id="final-products" class="final-products" aria-label="今日菜单真实饮品" aria-hidden="true" inert>
-      <button type="button" data-final-product="lemon" aria-label="选择冰鲜柠檬水" title="选择柠檬水"><img data-src="assets/products/real-lemonade.png" alt="冰鲜柠檬水"><span>柠檬水</span></button>
-      <button type="button" data-final-product="grape" aria-label="选择芋圆葡萄" title="选择芋圆葡萄"><img data-src="assets/products/real-taro-grape.png" alt="芋圆葡萄"><span>芋圆葡萄</span></button>
-      <button type="button" data-final-product="berry" aria-label="选择草莓波波" title="选择草莓波波"><img data-src="assets/products/real-strawberry-bobo.png" alt="草莓波波"><span>草莓波波</span></button>
-    </div>
+    <section id="result-card" class="result-card" aria-hidden="true" inert>
+      <div class="result-copy">
+        <span id="result-stamp">订单完成</span>
+        <p id="result-kicker">清爽解腻的今天</p>
+        <h2 id="result-name">冰鲜柠檬水</h2>
+        <p id="result-reason">鲜柠的酸甜，把赶路后的燥热轻轻带走。</p>
+        <div class="result-actions">
+          <button id="change-order" type="button">换一张订单</button>
+          <button id="replay-order" type="button" aria-label="重新走一次甜蜜采购">重新出发</button>
+        </div>
+      </div>
+      <button id="result-product" class="result-product" type="button" aria-label="查看冰鲜柠檬水">
+        <img data-src="assets/products/real-lemonade.png" alt="冰鲜柠檬水">
+        <span>点一下，看看雪王庆祝</span>
+      </button>
+    </section>
 
     <div class="dance-trio" aria-hidden="true">
       <img data-src="assets/toys/snow-kings-dance-v4.png" alt="">
@@ -105,7 +136,7 @@
 
     <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
 
-    <section id="caption" class="caption align-center">
+    <section id="caption" class="caption align-center" aria-hidden="true">
       <h1 id="title">蜜雪冰城</h1>
       <p id="copy">始于 1997 · 冰淇淋与茶</p>
     </section>

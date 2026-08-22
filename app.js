@@ -27,8 +27,15 @@
   const soundToggle = document.querySelector("#sound-toggle");
   const soundtrack = document.querySelector("#journey-score");
   const finalBrand = document.querySelector("#final-brand");
-  const finalMenu = document.querySelector("#final-menu");
-  const finalProducts = document.querySelector("#final-products");
+  const resultCard = document.querySelector("#result-card");
+  const resultProduct = document.querySelector("#result-product");
+  const resultImage = resultProduct?.querySelector("img");
+  const resultKicker = document.querySelector("#result-kicker");
+  const resultName = document.querySelector("#result-name");
+  const resultReason = document.querySelector("#result-reason");
+  const resultStamp = document.querySelector("#result-stamp");
+  const changeOrder = document.querySelector("#change-order");
+  const replayOrder = document.querySelector("#replay-order");
   const fxLayer = document.querySelector("#fx-layer");
   const sceneActionButtons = [...document.querySelectorAll("[data-scene-action]")];
   const ingredientTray = document.querySelector("#ingredient-tray");
@@ -38,15 +45,25 @@
   const mixBench = document.querySelector("#mix-bench");
   const mixProducts = [...document.querySelectorAll(".mix-product")];
   const mixButtons = [...document.querySelectorAll("[data-mix]")];
-  const finalProductButtons = [...document.querySelectorAll("[data-final-product]")];
+  const mixPrompt = document.querySelector("#mix-prompt");
+  const orderBrief = document.querySelector("#order-brief");
+  const orderButtons = [...document.querySelectorAll("[data-order]")];
+  const startOrder = document.querySelector("#start-order");
+  const missionHud = document.querySelector("#mission-hud");
+  const missionStep = document.querySelector("#mission-step");
+  const missionTitle = document.querySelector("#mission-title");
+  const missionCopy = document.querySelector("#mission-copy");
+  const missionProgress = document.querySelector("#mission-progress");
   const deferredImages = [...document.querySelectorAll("img[data-src]")];
   const danceImage = document.querySelector(".dance-trio img");
+  const mixBackdrop = document.querySelector(".v05-safe-stage img");
 
   const isMobile = matchMedia("(max-width: 700px)").matches;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const useHdFrames = !isMobile && innerWidth >= 1200;
   const concurrency = isMobile ? config.concurrency.mobile : config.concurrency.desktop;
   const cacheLimit = isMobile ? config.cacheLimit.mobile : config.cacheLimit.desktop;
+  const encodedLimit = isMobile ? 30 : 42;
   const decodeWindowSize = Math.min(cacheLimit, isMobile ? 20 : 28);
   const initialBufferSize = isMobile ? 12 : 18;
   const finalBrandAnchor = { x: 768, y: 391.5, sourceWidth: 1280, sourceHeight: 720 };
@@ -96,14 +113,48 @@
     autoPlaying: false,
     autoBuffering: false,
     initialBufferReady: false,
-    autoResumeAt: performance.now() + 900,
+    autoResumeAt: performance.now() + 5000,
     autoLastTime: 0,
     autoHoldUntil: 0,
     autoWritingUntil: 0,
     autoFrame: 0,
     autoHeartbeat: performance.now(),
     sceneRevealTimer: 0,
-    finaleRevealed: false
+    autoChoiceTimer: 0,
+    briefingTimer: 0,
+    finaleRevealed: false,
+    interactionLocked: false,
+    briefingComplete: false,
+    order: "lemon",
+    selectedRecipe: null,
+    result: "lemon"
+  };
+
+  const recipes = {
+    lemon: {
+      need: "清爽解腻", name: "冰鲜柠檬水", kicker: "清爽解腻的今天",
+      reason: "鲜柠的酸甜，把赶路后的燥热轻轻带走。",
+      image: "../assets/products/real-lemonade.png", accent: "#ffd629"
+    },
+    grape: {
+      need: "果香有嚼感", name: "芋圆葡萄", kicker: "果香和嚼感都要",
+      reason: "葡萄果香遇上 Q 弹芋圆，每一口都有新节奏。",
+      image: "../assets/products/real-taro-grape.png", accent: "#7950a5"
+    },
+    berry: {
+      need: "甜润有波波", name: "草莓波波", kicker: "甜甜的快乐要加倍",
+      reason: "草莓风味配上晶莹波波，把今天调成明亮的粉红色。",
+      image: "../assets/products/real-strawberry-bobo.png", accent: "#ef3d67"
+    }
+  };
+
+  const missionByScene = {
+    v01: ["01 / 04", "出发采购", "帮雪王把今天的原料带回店里", 18],
+    v02: ["02 / 04", "收下鲜柠", "点亮原料，让清爽跟上采购车", 36],
+    v03: ["02 / 04", "追上葡萄", "果香已经装车，还差最后一站", 52],
+    v04: ["02 / 04", "带回草莓", "三份原料到齐，准备回店调饮", 68],
+    v05: ["03 / 04", "甜蜜调饮所", "读懂订单，再选最合适的一杯", 84],
+    v06: ["04 / 04", "订单完成", "你的选择已经变成一杯真实饮品", 100]
   };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -199,6 +250,28 @@
     return record;
   }
 
+  function touchEncoded(url) {
+    if (!state.encodedCache.has(url)) return null;
+    const blob = state.encodedCache.get(url);
+    state.encodedCache.delete(url);
+    state.encodedCache.set(url, blob);
+    return blob;
+  }
+
+  function enforceEncodedLimit(protectedUrl = null) {
+    while (state.encodedCache.size > encodedLimit) {
+      const candidate = state.encodedCache.keys().next().value;
+      if (!candidate) break;
+      if (candidate === protectedUrl) {
+        const blob = state.encodedCache.get(candidate);
+        state.encodedCache.delete(candidate);
+        state.encodedCache.set(candidate, blob);
+        continue;
+      }
+      state.encodedCache.delete(candidate);
+    }
+  }
+
   function enforceDecodeLimit(protectedUrl = null) {
     while (state.frameCache.size > cacheLimit) {
       const candidate = state.frameCache.keys().next().value;
@@ -215,7 +288,7 @@
   }
 
   async function fetchFrame(url) {
-    if (state.encodedCache.has(url)) return state.encodedCache.get(url);
+    if (state.encodedCache.has(url)) return touchEncoded(url);
     if (state.encodedPromises.has(url)) return state.encodedPromises.get(url);
     const promise = fetch(url, { cache: "force-cache" })
       .then((response) => {
@@ -224,6 +297,7 @@
       })
       .then((blob) => {
         state.encodedCache.set(url, blob);
+        enforceEncodedLimit(state.lastDrawn?.url);
         return blob;
       })
       .finally(() => state.encodedPromises.delete(url));
@@ -403,7 +477,11 @@
     const forward = state.direction >= 0;
     if (state.activeSequence !== point.id) {
       clearTimeout(state.sceneRevealTimer);
+      clearTimeout(state.autoChoiceTimer);
+      if (state.activeSequence === "v05") setInteractionLock(false, 220);
+      experience.classList.remove("has-mix-bench");
       state.activeSequence = point.id;
+      updateMission(point.id);
       state.decodeAnchor = -1000;
       state.finaleRevealed = false;
       setFinalInteractive(false);
@@ -466,14 +544,83 @@
     status.textContent = station.title;
   }
 
+  function setInteractionLock(active, delay = 0) {
+    state.interactionLocked = active;
+    experience.classList.toggle("is-interacting", active);
+    if (active) {
+      state.autoPlaying = false;
+      state.autoLastTime = 0;
+    } else {
+      postponeAutoplay(delay);
+    }
+  }
+
+  function updateMission(sceneId) {
+    const mission = missionByScene[sceneId];
+    const visible = Boolean(mission);
+    missionHud?.classList.toggle("is-visible", visible);
+    missionHud?.setAttribute("aria-hidden", String(!visible));
+    if (!mission) return;
+    missionStep.textContent = mission[0];
+    missionTitle.textContent = mission[1];
+    missionCopy.textContent = mission[2];
+    missionProgress.style.width = `${mission[3]}%`;
+  }
+
+  function scheduleBriefingFallback() {
+    clearTimeout(state.briefingTimer);
+    state.briefingTimer = setTimeout(() => {
+      if (!state.briefingComplete && scrollY <= 1) {
+        selectOrder(state.order, { start: true, automatic: true });
+      }
+    }, reducedMotion ? 12000 : 8000);
+  }
+
+  function selectOrder(kind, { start = false, automatic = false } = {}) {
+    if (!recipes[kind]) return;
+    state.order = kind;
+    orderButtons.forEach((button) => {
+      const selected = button.dataset.order === kind;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-checked", String(selected));
+    });
+    mixPrompt.textContent = `订单要：${recipes[kind].need}`;
+    status.textContent = `已接下${recipes[kind].need}的订单`;
+    if (start) {
+      clearTimeout(state.briefingTimer);
+      state.briefingComplete = true;
+      unlockSoundtrack({ userInitiated: !automatic });
+      orderBrief.classList.add("is-confirmed");
+      updateMission("v01");
+      state.autoResumeAt = performance.now() + 240;
+      scrollToStation(1, "smooth");
+    }
+  }
+
+  async function setResult(kind, { matched = kind === state.order } = {}) {
+    const recipe = recipes[kind] || recipes.lemon;
+    state.result = kind;
+    experience.dataset.result = kind;
+    experience.style.setProperty("--result-accent", recipe.accent);
+    resultKicker.textContent = recipe.kicker;
+    resultName.textContent = recipe.name;
+    resultReason.textContent = matched ? recipe.reason : `这杯也完成了。下次按“${recipes[state.order].need}”提示调制，会更贴合订单。`;
+    resultStamp.textContent = matched ? "订单完成" : "新口味完成";
+    resultProduct.setAttribute("aria-label", `查看${recipe.name}`);
+    if (resultImage.dataset.src || !resultImage.src.includes(recipe.image.split("/").at(-1))) {
+      resultImage.dataset.src = recipe.image;
+      resultImage.removeAttribute("src");
+      await ensureImageReady(resultImage);
+    }
+    resultImage.alt = recipe.name;
+  }
+
   function setFinalInteractive(active, { brand = active } = {}) {
     finalBrand.classList.toggle("is-visible", brand);
     finalBrand.setAttribute("aria-hidden", String(!brand));
-    finalMenu.classList.toggle("is-visible", active);
-    finalMenu.setAttribute("aria-hidden", String(!active));
-    finalProducts.classList.toggle("is-visible", active);
-    finalProducts.setAttribute("aria-hidden", String(!active));
-    finalProducts.toggleAttribute("inert", !active);
+    resultCard.classList.toggle("is-visible", active);
+    resultCard.setAttribute("aria-hidden", String(!active));
+    resultCard.toggleAttribute("inert", !active);
   }
 
   function replayClass(node, className) {
@@ -482,18 +629,39 @@
     node.classList.add(className);
   }
 
-  function revealMixBench() {
+  async function revealMixBench() {
+    await ensureImageReady(mixBackdrop);
+    if (state.activeSequence !== "v05") return;
     mixBench.classList.add("is-visible");
+    experience.classList.add("has-mix-bench");
     mixBench.setAttribute("aria-hidden", "false");
     mixBench.removeAttribute("inert");
     replayClass(mixBench, "is-auto-revealing");
+    setInteractionLock(true);
+    clearTimeout(state.autoChoiceTimer);
+    state.autoChoiceTimer = setTimeout(() => {
+      if (state.activeSequence !== "v05" || state.selectedRecipe) return;
+      const fallback = mixButtons.find((button) => button.dataset.mix === state.order);
+      if (fallback) chooseMix(fallback, { automatic: true });
+    }, reducedMotion ? 1200 : 4400);
   }
 
-  function revealFinale() {
+  async function revealFinale() {
     state.finaleRevealed = true;
+    await setResult(state.result || state.selectedRecipe || state.order);
     setFinalInteractive(true, { brand: false });
-    replayClass(finalMenu, "is-auto-revealing");
-    replayClass(finalProducts, "is-auto-revealing");
+    replayClass(resultCard, "is-auto-revealing");
+  }
+
+  function revealFinaleWhenReady(attempt = 0) {
+    if (state.activeSequence !== "v06") return;
+    if (state.lastDrawn?.id === "v06") {
+      revealFinale();
+      return;
+    }
+    if (attempt < 80) {
+      state.sceneRevealTimer = setTimeout(() => revealFinaleWhenReady(attempt + 1), 100);
+    }
   }
 
   function scheduleSceneReveal(sceneId) {
@@ -502,7 +670,7 @@
     state.sceneRevealTimer = setTimeout(() => {
       if (state.activeSequence !== sceneId) return;
       if (sceneId === "v05") revealMixBench();
-      else revealFinale();
+      else revealFinaleWhenReady();
     }, reducedMotion ? 0 : delay);
   }
 
@@ -575,7 +743,7 @@
   }
 
   function collectIngredient(button, kind) {
-    state.ingredients[kind] = Math.min(9, state.ingredients[kind] + 1);
+    state.ingredients[kind] = 1;
     lemonCount.textContent = state.ingredients.lemon;
     grapeCount.textContent = state.ingredients.grape;
     berryCount.textContent = state.ingredients.berry;
@@ -584,7 +752,8 @@
   }
 
   function runSceneAction(button) {
-    unlockSoundtrack();
+    unlockSoundtrack({ userInitiated: true });
+    postponeAutoplay(1200);
     const action = button.dataset.sceneAction;
     if (action === "boost") {
       state.boostUntil = performance.now() + 2200;
@@ -594,6 +763,7 @@
       collectIngredient(button, action);
       if (action === "berry") pulseExperience("is-berrying", 1050);
     } else if (action === "mix") {
+      setInteractionLock(true);
       button.classList.remove("is-triggered");
       void button.offsetWidth;
       button.classList.add("is-triggered");
@@ -617,14 +787,20 @@
     }
   }
 
-  function chooseMix(button) {
+  function chooseMix(button, { automatic = false } = {}) {
+    clearTimeout(state.autoChoiceTimer);
+    const kind = button.dataset.mix;
+    state.selectedRecipe = kind;
     mixButtons.forEach((candidate) => candidate.classList.toggle("is-active", candidate === button));
-    mixBench.dataset.selected = button.dataset.mix;
-    mixProducts.forEach((product) => product.classList.toggle("is-selected", product.dataset.product === button.dataset.mix));
+    mixButtons.forEach((candidate) => candidate.setAttribute("aria-checked", String(candidate === button)));
+    mixBench.dataset.selected = kind;
+    mixProducts.forEach((product) => product.classList.toggle("is-selected", product.dataset.product === kind));
     mixBench.classList.remove("is-pouring");
     requestAnimationFrame(() => mixBench.classList.add("is-pouring"));
-    unlockSoundtrack();
-    status.textContent = { lemon: "柠檬水完成", grape: "芋圆葡萄完成", berry: "草莓波波完成" }[button.dataset.mix];
+    unlockSoundtrack({ userInitiated: !automatic });
+    setResult(kind, { matched: kind === state.order });
+    status.textContent = `${recipes[kind].name}完成`;
+    setTimeout(() => setInteractionLock(false, 650), reducedMotion ? 100 : 900);
   }
 
   function chooseMixProduct(product) {
@@ -632,11 +808,10 @@
     if (button) chooseMix(button);
   }
 
-  function chooseFinalProduct(button) {
-    finalProductButtons.forEach((candidate) => candidate.classList.toggle("is-selected", candidate === button));
-    replayClass(button, "is-bouncing");
-    unlockSoundtrack();
-    status.textContent = { lemon: "已选柠檬水", grape: "已选芋圆葡萄", berry: "已选草莓波波" }[button.dataset.finalProduct];
+  function celebrateResult() {
+    replayClass(resultProduct, "is-bouncing");
+    const crown = sceneActionButtons.find((button) => button.dataset.sceneAction === "dance");
+    if (crown) runSceneAction(crown);
   }
 
   function updateAutoplayControl() {
@@ -669,7 +844,7 @@
   function autoTour(now) {
     state.autoFrame = requestAnimationFrame(autoTour);
     state.autoHeartbeat = now;
-    if (!state.autoEnabled || !state.initialBufferReady || document.hidden || now < state.autoResumeAt || now < state.autoHoldUntil) {
+    if (!state.autoEnabled || !state.briefingComplete || state.interactionLocked || !state.initialBufferReady || document.hidden || now < state.autoResumeAt || now < state.autoHoldUntil) {
       state.autoPlaying = false;
       state.autoLastTime = 0;
       return;
@@ -754,6 +929,8 @@
     if (scrollY <= 1) {
       brandStage.classList.remove("is-hidden");
       cornerControls.classList.remove("is-visible");
+      missionHud.classList.remove("is-visible");
+      missionHud.setAttribute("aria-hidden", "true");
       setCaption(config.stations[0]);
     }
     clearTimeout(state.idleTimer);
@@ -767,7 +944,10 @@
   }
 
   function resizeCanvas() {
-    const dpr = Math.min(devicePixelRatio || 1, 1);
+    const sourceWidth = useHdFrames ? 1920 : 1280;
+    const sourceHeight = useHdFrames ? 1080 : 720;
+    const sourceRatio = Math.min(sourceWidth / Math.max(1, innerWidth), sourceHeight / Math.max(1, innerHeight));
+    const dpr = Math.max(.75, Math.min(devicePixelRatio || 1, useHdFrames ? 1.25 : 1, sourceRatio));
     canvas.width = Math.round(innerWidth * dpr);
     canvas.height = Math.round(innerHeight * dpr);
     canvas.style.width = `${innerWidth}px`;
@@ -788,11 +968,44 @@
     warmWindow(first.id, 0, true, { force: true });
   }
 
+  function resetJourney({ choose = false } = {}) {
+    clearTimeout(state.autoChoiceTimer);
+    state.ingredients = { lemon: 0, grape: 0, berry: 0 };
+    lemonCount.textContent = "0";
+    grapeCount.textContent = "0";
+    berryCount.textContent = "0";
+    state.selectedRecipe = null;
+    state.result = state.order;
+    state.interactionLocked = false;
+    mixButtons.forEach((button) => {
+      button.classList.remove("is-active");
+      button.setAttribute("aria-checked", "false");
+    });
+    mixProducts.forEach((product) => product.classList.remove("is-selected"));
+    mixBench.classList.remove("is-visible", "is-pouring");
+    experience.classList.remove("has-mix-bench");
+    setFinalInteractive(false);
+    orderBrief.classList.toggle("is-confirmed", !choose);
+    state.briefingComplete = !choose;
+    scrollTo({ top: 0, behavior: "smooth" });
+    if (!choose) {
+      state.autoResumeAt = performance.now() + 760;
+      setTimeout(() => scrollToStation(1, "smooth"), 380);
+    } else {
+      state.autoResumeAt = performance.now() + 8000;
+      scheduleBriefingFallback();
+    }
+  }
+
   addEventListener("scroll", onScroll, { passive: true });
   sceneActionButtons.forEach((button) => button.addEventListener("click", () => runSceneAction(button)));
   mixButtons.forEach((button) => button.addEventListener("click", () => chooseMix(button)));
   mixProducts.forEach((product) => product.addEventListener("click", () => chooseMixProduct(product)));
-  finalProductButtons.forEach((button) => button.addEventListener("click", () => chooseFinalProduct(button)));
+  orderButtons.forEach((button) => button.addEventListener("click", () => selectOrder(button.dataset.order)));
+  startOrder.addEventListener("click", () => selectOrder(state.order, { start: true }));
+  resultProduct.addEventListener("click", celebrateResult);
+  changeOrder.addEventListener("click", () => resetJourney({ choose: true }));
+  replayOrder.addEventListener("click", () => resetJourney({ choose: false }));
   addEventListener("wheel", () => { unlockSoundtrack(); postponeAutoplay(360); }, { passive: true });
   addEventListener("touchstart", (event) => {
     unlockSoundtrack({ userInitiated: true });
@@ -800,9 +1013,7 @@
   }, { passive: true });
   addEventListener("pointerdown", (event) => {
     unlockSoundtrack({ userInitiated: true });
-    if (!event.target.closest("button")) {
-      postponeAutoplay(700);
-    }
+    postponeAutoplay(event.target.closest("button") ? 5000 : 700);
   }, { passive: true });
   autoplayToggle.addEventListener("click", () => {
     unlockSoundtrack();
@@ -849,6 +1060,8 @@
   loading.hidden = true;
   resizeCanvas();
   setCaption(config.stations[0]);
+  selectOrder("lemon");
+  scheduleBriefingFallback();
   prepareInitialPlayback();
   updateAutoplayControl();
   soundtrack.addEventListener("canplay", () => {
@@ -889,7 +1102,12 @@
         autoEnabled: state.autoEnabled,
         autoPlaying: state.autoPlaying,
         autoBuffering: state.autoBuffering,
-        initialBufferReady: state.initialBufferReady
+        initialBufferReady: state.initialBufferReady,
+        interactionLocked: state.interactionLocked,
+        order: state.order,
+        selectedRecipe: state.selectedRecipe,
+        result: state.result,
+        resultVisible: resultCard.classList.contains("is-visible")
       };
     }
   };
